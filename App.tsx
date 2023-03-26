@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { ThemeProvider } from 'styled-components';
 import * as Font from 'expo-font';
 import {  } from 'react-native-screens'
+import * as WebBrowser from 'expo-web-browser';
 
 import{
   useFonts,
@@ -19,10 +20,10 @@ import { AuthProvider, useAuth } from './src/hooks/auth'
 
 
 export default function App() {
+
+  WebBrowser.maybeCompleteAuthSession();
   
   const [appIsReady, setAppIsReady] = useState(false)
-
-  const { userStorageLoading } = useAuth()
 
   useEffect(()=>{
     async function load(){
@@ -44,7 +45,7 @@ export default function App() {
   }, [])
 
   const onLayoutRootView = useCallback(async () => {
-    if(appIsReady || userStorageLoading){
+    if(appIsReady){
       await SplashScreen.hideAsync()
     }
   }, [appIsReady])
@@ -52,7 +53,6 @@ export default function App() {
   if(!appIsReady){
     return null;
   }
-
 
   return (
     <View

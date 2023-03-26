@@ -1,14 +1,13 @@
 import React, {useState} from 'react'
 import { ActivityIndicator, Alert, Platform } from 'react-native'
 import { RFValue } from 'react-native-responsive-fontsize'
+import * as WebBrowser from 'expo-web-browser'
 
 import AppleSvg from '../../../assets/apple.svg'
 import GoogleSvg from '../../../assets/google.svg'
 import LogoSvg from '../../../assets/logo.svg'
 
 import { useAuth } from '../../hooks/auth'
-
-
 
 import { SignInSocialButton } from '../../components/SignInSocialButton'
 
@@ -23,10 +22,12 @@ import {
 }from './styles'
 import { useTheme } from 'styled-components/native'
 
+WebBrowser.maybeCompleteAuthSession()
+
 export function SignIn(){
     const theme = useTheme()
     const [isLoading, setIsLoading] = useState(false)
-    const { signInWithGoogle, signInWithApple, GoogleSignIn } = useAuth()
+    const { signInWithApple, GoogleSignIn } = useAuth()
     
     async function handleSignInWithGoogle(){
         try {

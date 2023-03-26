@@ -4,7 +4,6 @@ import { AppleAuthenticationScope, signInAsync } from 'expo-apple-authentication
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserInfo } from '../screens/Dashboard/style'
 
-import * as WebBrowser from 'expo-web-browser'
 import * as Google from 'expo-auth-session/providers/google'
 
 interface AuthProviderProps{
@@ -114,7 +113,7 @@ function AuthProvider({children}: AuthProviderProps){
                 const userLogged = JSON.parse(userStorage) as User
                 setUser(userLogged)
             }
-            setUserStorageLoading(true)
+            setUserStorageLoading(false)
         }
 
         loadUserStorageDate()
@@ -148,11 +147,7 @@ function AuthProvider({children}: AuthProviderProps){
       });
 
     async function GoogleSignIn(){
-        try {
-            promptAsync()
-        } catch (error) {
-            console.warn(error)
-        }
+        await promptAsync()
     }
 
     const getUserInfo = async () => {
@@ -170,7 +165,7 @@ function AuthProvider({children}: AuthProviderProps){
                   email: user.email,
                   photo: user.picture
               })
-              WebBrowser.maybeCompleteAuthSession()
+
         } catch (error) {
             console.log('Error ao recuperar dados')
         }
