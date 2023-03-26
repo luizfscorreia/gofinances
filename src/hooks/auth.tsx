@@ -1,11 +1,11 @@
 import {createContext, ReactNode, useContext, useState, useEffect} from 'react'
 import * as AuthSession from 'expo-auth-session'
 import { AppleAuthenticationScope, signInAsync } from 'expo-apple-authentication'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { UserInfo } from '../screens/Dashboard/style'
+
 import * as WebBrowser from 'expo-web-browser'
 import * as Google from 'expo-auth-session/providers/google'
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-WebBrowser.maybeCompleteAuthSession()
 
 interface AuthProviderProps{
     children: ReactNode
@@ -23,6 +23,8 @@ interface IAuthContextData{
     signInWithGoogle(): Promise<void>
     signInWithApple(): Promise<void>
     signOut(): Promise<void>
+    GoogleSignIn(): Promise<void>
+    getUserData(accessToken:any): Promise<void>
     userStorageLoading: boolean
 }
 
@@ -41,7 +43,7 @@ function AuthProvider({children}: AuthProviderProps){
     const { REDIRECT_URI } = process.env
 
     const [user, setUser] = useState<User>({} as User)
-
+    const [token, setToken] = useState<string | null>()
     const [userStorageLoading, setUserStorageLoading] = useState(true)
 
     async function signInWithGoogle(){
@@ -118,8 +120,72 @@ function AuthProvider({children}: AuthProviderProps){
         loadUserStorageDate()
     }, [])
 
+
+    async function getUserData(accessToken:any){
+        let userInfoResponse = await fetch(
+            "https://www.googleapis.com/userinfo/v2/me", {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            }
+        )
+        const userInfo = await userInfoResponse.json()
+
+        setUser({
+            id: UserInfo.displayName!,
+            name: userInfo.given_name,
+            email: userInfo.email,
+            photo: userInfo.picture,
+        })
+
+        await AsyncStorage.setItem("@gofinances:user", JSON.stringify(user));
+    }
+
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        expoClientId: CLIENT_ID,
+        androidClientId: CLIENT_ID,
+        iosClientId: CLIENT_ID,
+        scopes: ['profile','email'],
+        redirectUri: REDIRECT_URI
+      });
+
+    async function GoogleSignIn(){
+        try {
+            promptAsync()
+        } catch (error) {
+            console.warn(error)
+        }
+    }
+
+    const getUserInfo = async () => {
+        try {
+            const response = await fetch(
+                "https://www.googleapis.com/userinfo/v2/me",
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
+              const user = await response!.json()
+              setUser({
+                  id: user.id,
+                  name:user.given_name,
+                  email: user.email,
+                  photo: user.picture
+              })
+              WebBrowser.maybeCompleteAuthSession()
+        } catch (error) {
+            console.log('Error ao recuperar dados')
+        }
+    }
+
+    useEffect(() => {
+        if(response?.type === 'success'){
+            setToken(response.authentication!.accessToken)
+            getUserInfo()
+
+        }
+    }, [response, token])
+
     return (
-        <AuthContext.Provider value={{user, signInWithGoogle, signInWithApple, signOut, userStorageLoading}}>
+        <AuthContext.Provider value={{user, signInWithGoogle, signInWithApple, signOut,GoogleSignIn, getUserData, userStorageLoading}}>
             {children}
         </AuthContext.Provider>
     )

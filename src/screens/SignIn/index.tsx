@@ -9,6 +9,7 @@ import LogoSvg from '../../../assets/logo.svg'
 import { useAuth } from '../../hooks/auth'
 
 
+
 import { SignInSocialButton } from '../../components/SignInSocialButton'
 
 import {
@@ -25,12 +26,12 @@ import { useTheme } from 'styled-components/native'
 export function SignIn(){
     const theme = useTheme()
     const [isLoading, setIsLoading] = useState(false)
-    const { signInWithGoogle, signInWithApple } = useAuth()
+    const { signInWithGoogle, signInWithApple, GoogleSignIn } = useAuth()
     
     async function handleSignInWithGoogle(){
         try {
             setIsLoading(true)
-            return await signInWithGoogle()
+            return await GoogleSignIn()
         } catch (error) {
             console.log(error)
             Alert.alert('Não foi possível conectar a conta Google')
